@@ -26,7 +26,7 @@ async def main():
     load_dotenv()
 
     # Default provider
-    provider_name = "openai"
+    provider_name = "googleai"
     provider = PROVIDERS[provider_name]
     client = provider.create_client()
     context = Context(SYSTEM_PROMPT)

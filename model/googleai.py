@@ -2,7 +2,7 @@ import os
 from google import genai
 from google.genai import types
 
-MODEL = "gemma-4-31b"
+MODEL = "gemma-4-31b-it"
 ENV_VAR = "GOOGLE_API_KEY"
 DISPLAY_NAME = "Google (Gemma 4 31B)"
 
