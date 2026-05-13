@@ -1,9 +1,7 @@
 /.env
-/__pycache__
 /models
 /scratch
 .pytest_cache/
 htmlcov/
 .coverage
-
 **/__pycache__/
