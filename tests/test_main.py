@@ -9,6 +9,65 @@ from unittest.mock import AsyncMock, MagicMock, patch, call
 from classes.context import Context
 
 
+# ── resolve_system_prompt ─────────────────────────────────────────────────
+
+class TestResolveSystemPrompt:
+    def test_prompt_file_arg_exists(self, tmp_path):
+        import main
+        with patch("main.Path.is_file") as mock_is_file, \
+             patch("main.Path.read_text") as mock_read:
+            # We want ONLY the first check to return True
+            def is_file_side_effect():
+                # We can't easily check 'self' path in side_effect safely without inspect,
+                # but we can just use a simple return sequence.
+                return True
+            mock_is_file.return_value = True
+            mock_read.return_value = "Custom prompt"
+            res = main.resolve_system_prompt("custom.md")
+            assert res == "Custom prompt"
+
+    def test_prompt_file_arg_not_found_falls_back(self):
+        import main
+        with patch("main.Path.is_file") as mock_is_file:
+            # All is_file checks return False
+            mock_is_file.return_value = False
+            res = main.resolve_system_prompt("missing.md")
+            assert res == main.SYSTEM_PROMPT
+
+    def test_local_prompt_exists(self):
+        import main
+        with patch("main.Path.is_file") as mock_is_file, \
+             patch("main.Path.read_text") as mock_read:
+            
+            # The checks happen in this order: local_prompt, global_prompt
+            # If we don't pass an arg, the first check is local_prompt
+            def is_file_side_effect():
+                pass
+                
+            # We can inspect the path string representation via mock calls if needed, 
+            # but simpler: if it's called on PROMPT.md, return True.
+            # A cleaner way is patching Path's methods bound to the instance, 
+            # but mocking `is_file` generally works.
+            # Let's just return True for the first call (local)
+            mock_is_file.side_effect = [True]
+            mock_read.return_value = "Local prompt"
+            
+            res = main.resolve_system_prompt()
+            assert res == "Local prompt"
+
+    def test_global_prompt_exists(self):
+        import main
+        with patch("main.Path.is_file") as mock_is_file, \
+             patch("main.Path.read_text") as mock_read:
+            
+            # Sequence: local (False), global (True)
+            mock_is_file.side_effect = [False, True]
+            mock_read.return_value = "Global prompt"
+            
+            res = main.resolve_system_prompt()
+            assert res == "Global prompt"
+
+
 # ── get_latest_conversation ───────────────────────────────────────────────
 
 class TestGetLatestConversation:

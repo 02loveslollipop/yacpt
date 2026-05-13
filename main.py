@@ -2,6 +2,8 @@ import asyncio
 import sys
 import os
 import uuid
+import argparse
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from classes.context import Context
@@ -58,19 +60,46 @@ async def display_models(provider, client):
         print(f"{RED}[Error fetching models: {e}]{RESET}")
 
 
+def resolve_system_prompt(prompt_file_arg=None):
+    """Resolve the system prompt string following override rules."""
+    if prompt_file_arg:
+        path = Path(prompt_file_arg)
+        if path.is_file():
+            return path.read_text(encoding="utf-8")
+        else:
+            print(f"{RED}[Warning: Prompt file '{prompt_file_arg}' not found. Falling back.]{RESET}")
+
+    local_prompt = Path("PROMPT.md")
+    if local_prompt.is_file():
+        return local_prompt.read_text(encoding="utf-8")
+
+    global_prompt = Path.home() / ".yacpt" / "SYSTEM_PROMPT.md"
+    if global_prompt.is_file():
+        return global_prompt.read_text(encoding="utf-8")
+
+    return SYSTEM_PROMPT
+
+
 async def main():
     load_dotenv()
     CONVERSATIONS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Parse CLI args for resume
+    parser = argparse.ArgumentParser(description="yacpt CLI")
+    parser.add_argument("command", nargs="?", default="chat", choices=["chat", "resume"])
+    parser.add_argument("resume_id", nargs="?", help="Conversation UUID to resume")
+    parser.add_argument("--prompt_file", type=str, help="Path to a custom prompt file")
+    
+    # Use parse_known_args in case we add future CLI options dynamically
+    args, _ = parser.parse_known_args()
+
     conversation_id = None
     provider_name = "googleai"
     context = None
 
-    if len(sys.argv) >= 2 and sys.argv[1] == "resume":
-        if len(sys.argv) >= 3:
+    if args.command == "resume":
+        if args.resume_id:
             # Resume specific conversation
-            resume_id = sys.argv[2]
+            resume_id = args.resume_id
             conv_path = CONVERSATIONS_DIR / f"{resume_id}.jsonl"
         else:
             # Resume latest conversation
@@ -100,12 +129,16 @@ async def main():
         print(f"{BLUE}=== Resumed conversation {conversation_id} ({msg_count} messages) ==={RESET}")
     else:
         # New conversation
-        conversation_id = str(uuid.uuid4())
         provider = PROVIDERS[provider_name]
         client = provider.create_client()
-        context = Context(SYSTEM_PROMPT)
-
-    conv_path = CONVERSATIONS_DIR / f"{conversation_id}.jsonl"
+        
+        # Resolve custom prompt if present
+        actual_prompt = resolve_system_prompt(args.prompt_file)
+        context = Context(actual_prompt)
+        
+        conversation_id = str(uuid.uuid4())
+        print(f"{BLUE}=== New conversation {conversation_id} ==={RESET}")
+        conv_path = CONVERSATIONS_DIR / f"{conversation_id}.jsonl"
 
     print(f"Active model: {provider.DISPLAY_NAME}")
     print(f"Commands: /exit  /compact  /prune <n>  /model <provider> [model_name]\n")
