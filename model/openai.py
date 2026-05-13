@@ -13,6 +13,27 @@ def create_client():
     return AsyncOpenAI(api_key=api_key)
 
 
+async def get_models(client=None):
+    """Query the OpenAI API for available chat models and return structured info."""
+    if client is None:
+        client = create_client()
+    models = []
+    model_list = await client.models.list()
+    for m in model_list.data:
+        model_id = m.id
+        # Filter to GPT/chat models only
+        if not any(prefix in model_id for prefix in ("gpt", "o1", "o3", "o4")):
+            continue
+        models.append({
+            "id": model_id,
+            "name": model_id,
+            "description": "",
+            "context_window": None,
+        })
+    models.sort(key=lambda x: x["id"])
+    return models
+
+
 async def stream_response(client, context):
     stream = await client.responses.create(
         model=MODEL,

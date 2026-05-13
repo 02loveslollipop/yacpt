@@ -1,3 +1,4 @@
+import json
 import tiktoken
 
 
@@ -34,6 +35,47 @@ class Context:
             num_tokens += len(encoding.encode(message["content"]))
         num_tokens += 2  # assistant reply priming
         return num_tokens
+
+    def serialize(self, filepath: str, provider_name: str = "", model_name: str = ""):
+        """Write the conversation to a JSONL file.
+
+        First line is metadata (provider/model), subsequent lines are messages.
+        """
+        with open(filepath, "w", encoding="utf-8") as f:
+            # Metadata line
+            meta = {"meta": {"provider": provider_name, "model": model_name}}
+            f.write(json.dumps(meta) + "\n")
+            # Message lines
+            for msg in self.messages:
+                f.write(json.dumps(msg) + "\n")
+
+    @classmethod
+    def deserialize(cls, filepath: str):
+        """Load a conversation from a JSONL file.
+
+        Returns (context, metadata_dict) where metadata_dict contains
+        provider and model info from the first line.
+        """
+        messages = []
+        metadata = {"provider": "", "model": ""}
+        with open(filepath, "r", encoding="utf-8") as f:
+            for i, line in enumerate(f):
+                line = line.strip()
+                if not line:
+                    continue
+                obj = json.loads(line)
+                if i == 0 and "meta" in obj:
+                    metadata = obj["meta"]
+                    continue
+                messages.append(obj)
+
+        if not messages or messages[0]["role"] != "system":
+            raise ValueError("JSONL file must start with a system message.")
+
+        ctx = cls(messages[0]["content"])
+        for msg in messages[1:]:
+            ctx.messages.append(msg)
+        return ctx, metadata
 
     async def compact(self, client):
         """Summarize older messages into a single system message."""
