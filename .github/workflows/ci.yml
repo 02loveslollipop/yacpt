@@ -26,7 +26,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          pytest tests/ -v \
+          python -m pytest tests/ -v \
             --cov=classes --cov=model --cov=main \
             --cov-report=term-missing \
             --cov-report=html:htmlcov \
@@ -65,4 +65,4 @@ jobs:
 
       - name: Run e2e tests
         run: |
-          pytest tests/test_e2e.py -v -m e2e
+          python -m pytest tests/test_e2e.py -v -m e2e
