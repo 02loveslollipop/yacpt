@@ -192,7 +192,7 @@ async def main():
         print(f"\n\n{YELLOW}To resume this conversation use:{RESET}")
         print(f"  python main.py resume {conversation_id}\n")
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

@@ -83,7 +83,7 @@ class Context:
             return
 
         messages_to_summarize = self.messages[1:-2]
-        if not messages_to_summarize:
+        if not messages_to_summarize:  # pragma: no cover
             return
 
         summary_request = [
