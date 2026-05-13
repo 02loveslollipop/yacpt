@@ -64,17 +64,17 @@ def resolve_system_prompt(prompt_file_arg=None):
     """Resolve the system prompt string following override rules."""
     if prompt_file_arg:
         path = Path(prompt_file_arg)
-        if path.exists():
+        if path.is_file():
             return path.read_text(encoding="utf-8")
         else:
             print(f"{RED}[Warning: Prompt file '{prompt_file_arg}' not found. Falling back.]{RESET}")
 
     local_prompt = Path("PROMPT.md")
-    if local_prompt.exists():
+    if local_prompt.is_file():
         return local_prompt.read_text(encoding="utf-8")
 
     global_prompt = Path.home() / ".yacpt" / "SYSTEM_PROMPT.md"
-    if global_prompt.exists():
+    if global_prompt.is_file():
         return global_prompt.read_text(encoding="utf-8")
 
     return SYSTEM_PROMPT
