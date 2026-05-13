@@ -1,6 +1,6 @@
-# TUI-GPT
+# yacpt (Yet another CLI for Pretrained Transformers)
 
-A Terminal User Interface (TUI) for interacting with various Large Language Models (LLMs). This project is a modular, async CLI chat application that supports multiple model providers and features automatic context management.
+A Terminal User Interface (TUI) / CLI for interacting with various Large Language Models (LLMs). This project is a modular, async CLI chat application that supports multiple model providers and features automatic context management.
 
 ## Features
 
@@ -29,7 +29,7 @@ A Terminal User Interface (TUI) for interacting with various Large Language Mode
 1.  **Clone the repository:**
     ```bash
     git clone <repository_url>
-    cd tui-gpt
+    cd yacpt
     ```
 
 2.  **Install dependencies:**
